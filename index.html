@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Worms Presentation</title>
+    <style>
+        /* General Reset */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        body { 
+            overflow: hidden; 
+            background: #f4f4f4; 
+            color: #333; 
+            user-select: none; 
+        }
+
+        /* LASER POINTER STYLE */
+        #laser-dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #ff0000;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000, 0 0 40px #ff0000;
+            pointer-events: none; 
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+
+        body.laser-active { cursor: none; }
+
+        /* Slide Container */
+        .slider-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Slide Styling */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+            background: white;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: all;
+            z-index: 10;
+        }
+
+        /* Slide Themes */
+        .slide-intro { background: linear-gradient(135deg, #1b5e20 0%, #4caf50 100%); color: white; text-align: center; }
+        .slide-light { background: #ffffff; color: #222; }
+        .slide-accent { background: #e8f5e9; color: #1b5e20; }
+        .slide-dark { background: #263238; color: #eceff1; }
+
+        /* Typography */
+        h1 { font-size: 4rem; margin-bottom: 20px; line-height: 1.1; text-shadow: 2px 2px 10px rgba(0,0,0,0.2); }
+        h2 { font-size: 2.8rem; margin-bottom: 30px; color: #2e7d32; }
+        .slide-intro h2 { color: #a5d6a7; font-size: 2rem; font-weight: 400; text-shadow: none; }
+        .slide-dark h2 { color: #80cbc4; }
+        
+        ul { list-style: none; max-width: 900px; text-align: left; }
+        li { font-size: 1.8rem; margin-bottom: 25px; padding-left: 35px; position: relative; line-height: 1.4; }
+        li::before { content: "•"; color: #4caf50; position: absolute; left: 0; font-weight: bold; font-size: 2rem; top: -5px; }
+        .slide-intro li::before { color: #fff; }
+
+        /* Metrics */
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 30px; width: 80%; }
+        .metric-card { background: rgba(255,255,255,0.8); border: 2px solid #4caf50; padding: 25px; text-align: center; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .metric-val { font-size: 3rem; font-weight: bold; display: block; margin-bottom: 5px; }
+        .metric-label { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; color: #555; }
+
+        /* Controls Area */
+        .controls-area {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: linear-gradient(to top, rgba(0,0,0,0.1), transparent);
+            transition: opacity 0.5s ease; 
+        }
+
+        /* Button Styling */
+        .btn-group { display: flex; gap: 15px; }
+        button {
+            background: #2e7d32;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            font-weight: bold;
+        }
+        button:hover { background: #1b5e20; transform: translateY(-2px); }
+        button.secondary { background: #546e7a; }
+        button#laserBtn.active { background: #d32f2f; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+
+        .progress { position: absolute; bottom: 0; left: 0; height: 6px; background: #4caf50; transition: width 0.3s; z-index: 101; }
+        .footer { font-size: 0.9rem; opacity: 0.6; color: #333; font-weight: bold;}
+
+        /* --- HIDE CONTROLS LOGIC --- */
+        /* Used for auto-hide in windowed mode */
+        .controls-area.hidden-idle { opacity: 0; pointer-events: none; }
+        
+        /* Used to permanently hide in fullscreen mode */
+        .controls-area.fullscreen-gone { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="laser-dot"></div>
+
+    <div class="slider-container">
+        <div class="slide slide-intro active">
+            <h1>Green Worms</h1>
+            <h2>Revolutionizing Waste Management through Social Entrepreneurship</h2>
+            <div style="margin-top: 50px; border-top: 1px solid rgba(255,255,255,0.4); padding-top: 30px; width: 60%;">
+                <p style="font-size: 1.4rem;">Founded: 2014 | Location: Kerala, India</p>
+                <p style="font-size: 1.4rem; margin-top:10px;">Founder: Jabir Karat</p>
+            </div>
+            <br><br><br>
+            <p style="font-size: 1.4rem; margin-top:10px;"><b>TEAM <I>TECHNO FLIP: </I></b> Bhoomija M, Thanha Noorudheen, A Harikrishna,Muhammed Niyas, P D Nivedh</p>
+        </div>
+
+        <div class="slide slide-light">
+            <h2>The Problem & The Solution</h2>
+            <ul>
+                <li><strong>The Crisis:</strong> 90% of plastic waste ends in landfills or oceans due to a lack of "last-mile" infrastructure.</li>
+                <li><strong>The Solution (Social Procurement):</strong> Green Worms formalizes the informal sector, partnering with women's Self-Help Groups.</li>
+                <li><strong>Methodology:</strong> Strict "Source-Level Segregation" to ensure high-quality material recovery and zero-waste events.</li>
+            </ul>
+        </div>
+
+        <div class="slide slide-accent">
+            <h2>Empowering "Waste-Preneurs"</h2>
+            <ul>
+                <li><strong>Beneficiaries:</strong> Over 3,000 women from <em>Kudumbashree</em> and <em>Haritha Karma Sena</em> networks.</li>
+                <li><strong>Transformation:</strong> Converts "ragpicking" into dignified, salaried professions with safety gear and social respect.</li>
+                <li><strong>Regional Focus:</strong> specifically targets vulnerable coastal communities and islands (Lakshadweep/Andamans).</li>
+            </ul>
+        </div>
+
+        <div class="slide slide-dark">
+            <h2>Digital Innovation & Tech</h2>
+            <ul>
+                <li><strong>100% Traceability:</strong> Uses app-based tracking from <em>Doorstep</em> to <em>Recycler</em>, guaranteeing ethical sourcing.</li>
+                <li><strong>FinTech Inclusion:</strong> Launched India’s first <strong>CBDC (Digital Rupee)</strong> pilot for sanitation workers.</li>
+                <li><strong>Impact:</strong> Ensures transparent, direct wages and builds financial history for marginalized women.</li>
+            </ul>
+        </div>
+
+        <div class="slide slide-light">
+            <h2>Impact Metrics & SDGs</h2>
+            <div class="metrics-grid">
+                <div class="metric-card" style="border-color: #2e7d32; color: #2e7d32;">
+                    <span class="metric-val">67,000+<br>per Annum</span>
+                    <span class="metric-label">Tons Waste Recovered</span>
+                </div>
+                <div class="metric-card" style="border-color: #1976d2; color: #1976d2;">
+                    <span class="metric-val">SDG<br>1, 5, 8, 12, 14, 17</span>
+                    <span class="metric-label">UN Goals Addressed</span>
+                </div>
+                <div class="metric-card" style="border-color: #f57f17; color: #f57f17;">
+                    <span class="metric-val">100+</span>
+                    <span class="metric-label">Villages Covered</span>
+                </div>
+                <div class="metric-card" style="border-color: #c2185b; color: #c2185b;">
+                    <span class="metric-val">3,000+</span>
+                    <span class="metric-label">Women Empowered</span>
+                </div>
+            </div>
+            <p style="margin-top: 50px; font-size: 1.2rem; color: #666; font-style: italic;">Global Recognition: UNESCO Green Citizens</p>
+        </div>
+    </div>
+
+    <div class="progress" id="progressBar"></div>
+
+    <div class="controls-area" id="controls">
+        <div class="btn-group">
+            <button class="secondary" id="laserBtn" onclick="toggleLaser()">Laser (L)</button>
+            <button class="secondary" onclick="toggleFullScreen()">Full (F)</button>
+            <button onclick="changeSlide(-1)">&#8592; Prev</button>
+            <button onclick="changeSlide(1)">Next &#8594;</button>
+        </div>
+    </div>
+
+    <script>
+        // --- SLIDE LOGIC ---
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const progressBar = document.getElementById('progressBar');
+
+        function updateProgress() {
+            const width = ((currentSlide + 1) / slides.length) * 100;
+            progressBar.style.width = width + '%';
+        }
+
+        function changeSlide(direction) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide += direction;
+            if (currentSlide >= slides.length) currentSlide = 0;
+            if (currentSlide < 0) currentSlide = slides.length - 1;
+            slides[currentSlide].classList.add('active');
+            updateProgress();
+        }
+
+        // --- LASER LOGIC ---
+        let laserEnabled = false;
+        const laserDot = document.getElementById('laser-dot');
+        const laserBtn = document.getElementById('laserBtn');
+        const body = document.body;
+
+        function toggleLaser() {
+            laserEnabled = !laserEnabled;
+            if (laserEnabled) {
+                laserDot.style.display = 'block';
+                body.classList.add('laser-active');
+                laserBtn.classList.add('active');
+            } else {
+                laserDot.style.display = 'none';
+                body.classList.remove('laser-active');
+                laserBtn.classList.remove('active');
+            }
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            if (laserEnabled) {
+                laserDot.style.left = e.pageX + 'px';
+                laserDot.style.top = e.pageY + 'px';
+            }
+        });
+
+        // --- FULLSCREEN & HIDE CONTROLS LOGIC ---
+        const controls = document.getElementById('controls');
+        let idleTimer;
+
+        // Toggle Fullscreen
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        // Event Listener: Detect if Fullscreen changes
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                // If in Fullscreen -> REMOVE CONTROLS COMPLETELY
+                controls.classList.add('fullscreen-gone');
+            } else {
+                // If exiting Fullscreen -> SHOW CONTROLS BACK
+                controls.classList.remove('fullscreen-gone');
+            }
+        });
+
+        // Auto-Hide for Windowed Mode (Only runs when NOT in fullscreen)
+        function resetIdleTimer() {
+            if (!document.fullscreenElement) {
+                controls.classList.remove('hidden-idle');
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(() => {
+                    controls.classList.add('hidden-idle');
+                }, 3000); // 3 seconds
+            }
+        }
+
+        // --- INPUT LISTENERS ---
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "ArrowRight") changeSlide(1);
+            if (event.key === "ArrowLeft") changeSlide(-1);
+            if (event.key.toLowerCase() === 'l') toggleLaser();
+            if (event.key.toLowerCase() === 'f') toggleFullScreen();
+            
+            resetIdleTimer();
+        });
+
+        document.addEventListener('mousemove', resetIdleTimer);
+        document.addEventListener('mousedown', resetIdleTimer);
+
+        // Init
+        updateProgress();
+        resetIdleTimer();
+    </script>
+</body>
+</html>
